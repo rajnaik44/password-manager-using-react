@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { ToastContainer, toast } from 'react-toastify';
-
+import { v4 as uuidv4 } from 'uuid';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Manager = () => {
@@ -36,10 +36,47 @@ const Manager = () => {
   };
 
   const savePassword = () => {
-    setPasswordArray([...passwordArray, form]);
-    localStorage.setItem("password", JSON.stringify([...passwordArray, form]));
+    setPasswordArray([...passwordArray, {...form, id:uuidv4()}]);
+    localStorage.setItem("password", JSON.stringify([...passwordArray,{...form, id:uuidv4()}]));
     setForm({ site: "", username: "", password: "" }); // Reset form fields after saving
+    toast.info('password saved successfully', {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      });
   };
+
+  const deletePassword = (id) => {
+    let c = confirm ("Do you really want to delete this password");
+    if(c){
+      console.log("Deleting password with id " , id)
+    setPasswordArray(passwordArray.filter(item=>item.id!==id));
+    localStorage.setItem("password", JSON.stringify(passwordArray.filter(item=>item.id!==id)));
+    toast('password has been deleted successfully!', {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      });
+  }
+  };
+
+  const editPassword = (id) => {
+    console.log("Editing password with id " , id)
+    setForm(passwordArray.filter(i=>i.id===id)[0])
+    setPasswordArray(passwordArray.filter(item=>item.id!==id));
+  };
+
+
 
   const showPassword = () => {
     if (ref.current.src.includes("icons/eyecross.png")) {
@@ -69,7 +106,7 @@ transition="Bounce"
       <div className="absolute inset-0 -z-10 h-full w-full bg-green-200 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]">
         <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-fuchsia-400 opacity-20 blur-[100px]"></div>
       </div>
-      <div className="mx-auto  mycontainer">
+      <div className="mx-auto p-2 md:p-0  md:mycontainer">
         <h1 className="text-4xl font-bold text-center">
           <span className="text-green-500">&lt;</span>
           Pass
@@ -86,11 +123,12 @@ transition="Bounce"
             type="text"
             onChange={handleChange}
             name="site"
-            id=""
+            id="site"
           />
-          <div className="flex w-full gap-8 justify-between ">
+          <div className="flex flex-col md:flex-row w-full gap-8 justify-between ">
             <input
               value={form.username}
+              id="username"
               placeholder="Enter UserName"
               type="text"
               onChange={handleChange}
@@ -101,6 +139,7 @@ transition="Bounce"
               <input
                 ref={passwordRef}
                 value={form.password}
+                id="password"
                 placeholder="Enter Password"
                 type="password"
                 onChange={handleChange}
@@ -126,7 +165,7 @@ transition="Bounce"
             onClick={savePassword}
             className="bg-green-500 rounded-full flex justify-center items-center px-4 py-2 w-fit hover:bg-green-800"
           >
-            Add Password
+            Save Password
           </button>
         </div>
         <div className="passwords">
@@ -187,8 +226,8 @@ transition="Bounce"
                         </div>
                       </td>
                       <td className="text-center mx-2">
-                    <span className="font-bold text-xl hover:text-green-950 mx-3 cursor-pointer">Edit</span>
-                    <span className="font-bold text-xl hover:text-green-950 cursor-pointer">Delete</span>
+                    <span onClick={()=>{editPassword(item.id)}} className="font-bold text-xl hover:text-green-950 mx-3 cursor-pointer">Edit</span>
+                    <span onClick={()=>{deletePassword(item.id)}} className="font-bold text-xl hover:text-green-950 cursor-pointer">Delete</span>
                       </td>
                     </tr>
                   );
